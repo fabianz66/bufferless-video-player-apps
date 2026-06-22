@@ -28,7 +28,7 @@ class CustomPlayerBuilder(
     fun build(): ExoPlayer {
         return ExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
-            .setLoadControl(loadControl)
+//            .setLoadControl(loadControl)
             .setBandwidthMeter(bandwidthMeter)
             .build()
             .apply {

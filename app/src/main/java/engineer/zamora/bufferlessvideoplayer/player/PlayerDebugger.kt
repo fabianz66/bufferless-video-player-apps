@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
+/**
+ * Data class representing current playback metrics.
+ */
 data class PlaybackStats(
     val resolution: String = "Unknown",
     val bitrate: String = "0 bps",
@@ -27,32 +30,33 @@ data class PlaybackStats(
     val droppedFrames: Int = 0
 )
 
+/**
+ * Monitors and logs playback events, tracks, and performance metrics from [ExoPlayer].
+ */
 @UnstableApi
 class PlayerDebugger(
     private val logger: CustomLogger
 ) : Player.Listener, AnalyticsListener {
+
     private var attachedPlayer: ExoPlayer? = null
     private val _currentStats = MutableStateFlow(PlaybackStats())
+
+    /** Current real-time playback statistics. */
     val currentStats: StateFlow<PlaybackStats> = _currentStats.asStateFlow()
 
+    /**
+     * Attaches the debugger to the player and starts monitoring.
+     */
     fun startDebugging(exoPlayer: ExoPlayer) {
         attachedPlayer = exoPlayer
         log("Debugging started")
-        // 1. Monitor Tracks, Codecs, and Resolutions
+        // Monitor tracks, codecs, and basic player events
         exoPlayer.addListener(this)
-        // 2. Monitor Segment Downloads
+        // Monitor detailed loading and bandwidth analytics
         exoPlayer.addAnalyticsListener(this)
     }
 
-    override fun onVideoDecoderInitialized(
-        eventTime: AnalyticsListener.EventTime,
-        decoderName: String,
-        initializedTimestampMs: Long,
-        initializationDurationMs: Long
-    ) {
-        log("Decoder Initialized: $decoderName")
-        _currentStats.value = _currentStats.value.copy(decoderName = decoderName)
-    }
+    // region Player.Listener Implementation
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         updatePlayerState()
@@ -60,10 +64,6 @@ class PlayerDebugger(
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         updatePlayerState()
-    }
-
-    override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: PlaybackException) {
-        log("Error: ${error.message}")
     }
 
     override fun onPlayerError(error: PlaybackException) {
@@ -76,6 +76,7 @@ class PlayerDebugger(
         var videoRes = "Unknown"
         var videoBitrate = "0 bps"
         var videoCodec = "Unknown"
+        var fps = "Unknown"
 
         tracks.groups.forEach { group ->
             if (group.type == C.TRACK_TYPE_VIDEO && group.isSelected) {
@@ -85,6 +86,8 @@ class PlayerDebugger(
                         videoRes = "${format.width}x${format.height}"
                         videoBitrate = "${format.bitrate / 1000} kbps"
                         videoCodec = format.sampleMimeType ?: "Unknown"
+                        fps =
+                            if (format.frameRate > 0) "${format.frameRate.toInt()} fps" else "Unknown"
                     }
                 }
             }
@@ -93,10 +96,12 @@ class PlayerDebugger(
         _currentStats.value = _currentStats.value.copy(
             resolution = videoRes,
             bitrate = videoBitrate,
-            codec = videoCodec
+            codec = videoCodec,
+            frameRate = fps
         )
 
-        tracks.groups.forEachIndexed { index, group ->
+        // Log detailed track information
+        tracks.groups.forEachIndexed { _, group ->
             val type = when (group.type) {
                 C.TRACK_TYPE_AUDIO -> "Audio"
                 C.TRACK_TYPE_TEXT -> "Text"
@@ -106,21 +111,24 @@ class PlayerDebugger(
             for (i in 0 until group.length) {
                 val format: Format = group.getTrackFormat(i)
                 val isSelected = group.isTrackSelected(i)
-
-                if (isSelected) {
-                    val fps =
-                        if (format.frameRate > 0) "${format.frameRate.toInt()} fps" else "Unknown"
-                    _currentStats.value = _currentStats.value.copy(frameRate = fps)
-                }
-
                 log("  $type track $i: ${format.width}x${format.height}, ${format.bitrate}bps, ${format.sampleMimeType}, selected=$isSelected")
             }
         }
     }
 
+    /**
+     * Called when one or more player events occur.
+     *
+     * This implementation monitors for dropped video frames via the decoder counters
+     * and updates the [currentStats] accordingly. It also detects when a new media
+     * manifest has been loaded by checking for timeline changes.
+     *
+     * @param player The [Player] emitting the events.
+     * @param events The set of [Player.Events] that occurred.
+     */
     @OptIn(UnstableApi::class)
     override fun onEvents(player: Player, events: Player.Events) {
-        // Polling logic for dropped frames (called frequently by the player)
+        // Monitor dropped frames periodically
         attachedPlayer?.let { exo ->
             val counters = exo.videoDecoderCounters
             if (counters != null) {
@@ -132,11 +140,28 @@ class PlayerDebugger(
         }
 
         if (events.contains(Player.EVENT_TIMELINE_CHANGED)) {
-            val manifest = player.currentManifest
-            if (manifest != null) {
+            if (player.currentManifest != null) {
                 log("Manifest loaded")
             }
         }
+    }
+
+    // endregion
+
+    // region AnalyticsListener Implementation
+
+    override fun onVideoDecoderInitialized(
+        eventTime: AnalyticsListener.EventTime,
+        decoderName: String,
+        initializedTimestampMs: Long,
+        initializationDurationMs: Long
+    ) {
+        log("Decoder Initialized: $decoderName")
+        _currentStats.value = _currentStats.value.copy(decoderName = decoderName)
+    }
+
+    override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: PlaybackException) {
+        log("Error: ${error.message}")
     }
 
     @OptIn(UnstableApi::class)
@@ -172,6 +197,13 @@ class PlayerDebugger(
         _currentStats.value = _currentStats.value.copy(bandwidth = bandwidthString)
     }
 
+    // endregion
+
+    // region Private Helper Methods
+
+    /**
+     * Updates the player state string (PLAYING, PAUSED, BUFFERING, etc.)
+     */
     private fun updatePlayerState() {
         val player = attachedPlayer ?: return
         val playbackState = player.playbackState
@@ -191,7 +223,12 @@ class PlayerDebugger(
         }
     }
 
+    /**
+     * Helper to send log messages to the [CustomLogger].
+     */
     private fun log(message: String) {
         logger.log(message)
     }
+
+    // endregion
 }

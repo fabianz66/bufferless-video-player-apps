@@ -5,7 +5,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
 
 /**
- * This class selects the allowed tracks. Which tracks the ABR logic can pick from.
+ * This class selects the allowed tracks, i.e. what tracks the ABR logic can pick from.
  */
 @UnstableApi
 class CustomTrackSelector(

@@ -21,13 +21,21 @@ fun StatsForNerds(stats: PlaybackStats) {
             .background(Color.Black.copy(alpha = 0.7f))
             .padding(8.dp)
     ) {
-        StatRow("State", stats.playerState, if (stats.playerState == "BUFFERING") Color.Yellow else Color.White)
+        StatRow(
+            "State",
+            stats.playerState,
+            if (stats.playerState == "BUFFERING") Color.Yellow else Color.White
+        )
         StatRow("Res", "${stats.resolution} @ ${stats.frameRate}")
         StatRow("Codec", stats.codec)
         StatRow("Decoder", stats.decoderName)
         StatRow("Bitrate", stats.bitrate)
         StatRow("Bandwidth", stats.bandwidth)
-        StatRow("Dropped", "${stats.droppedFrames}", if (stats.droppedFrames > 0) Color.Red else Color.White)
+        StatRow(
+            "Dropped",
+            "${stats.droppedFrames}",
+            if (stats.droppedFrames > 0) Color.Red else Color.White
+        )
     }
 }
 
@@ -37,13 +45,13 @@ private fun StatRow(label: String, value: String, valueColor: Color = Color.Whit
         Text(
             text = "$label: ",
             color = Color.Gray,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             fontFamily = FontFamily.Monospace
         )
         Text(
             text = value,
             color = valueColor,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             fontFamily = FontFamily.Monospace
         )
     }
