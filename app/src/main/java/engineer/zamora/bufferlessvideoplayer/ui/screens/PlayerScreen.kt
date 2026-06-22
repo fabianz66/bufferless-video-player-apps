@@ -8,10 +8,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PlayerScreen(url: String) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Player Screen", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "Now Playing: $url", color = MaterialTheme.colorScheme.primary)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(text = "Now Playing:", style = MaterialTheme.typography.labelLarge)
+        Text(text = url, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge)
     }
 }

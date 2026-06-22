@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(onNavigateToPlayer: (String) -> Unit) {
     // This is Compose State. If urlText changes, the UI automatically recomposes!
-    var urlText by remember { mutableStateOf("") }
+    var urlText by remember { mutableStateOf("http://localhost:8000/manifest.m3u8") }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Welcome to the Video App", style = MaterialTheme.typography.headlineMedium)
@@ -20,7 +20,7 @@ fun HomeScreen(onNavigateToPlayer: (String) -> Unit) {
             value = urlText,
             onValueChange = { newText -> urlText = newText }, // Update state as user types
             label = { Text("Enter Video URL") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
