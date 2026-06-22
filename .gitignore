@@ -1,0 +1,29 @@
+# Built artifacts
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Build directories
+build/
+.gradle/
+app/build/
+
+# Local configuration (contains SDK path — machine-specific)
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# OS
+.DS_Store
+Thumbs.db
