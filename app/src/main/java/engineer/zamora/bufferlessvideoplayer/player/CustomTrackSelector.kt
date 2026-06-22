@@ -15,6 +15,8 @@ class CustomTrackSelector(context: android.content.Context) : DefaultTrackSelect
             )
             // You can also add other encapsulated rules here
 //            .setForceLowestBitrate(false)
+            .setForceLowestBitrate(true)
+            .setAllowVideoNonSeamlessAdaptiveness(true)
             .build()
     }
 }
