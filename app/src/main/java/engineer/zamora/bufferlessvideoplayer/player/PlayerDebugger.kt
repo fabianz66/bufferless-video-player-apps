@@ -104,15 +104,15 @@ class PlayerDebugger(
         // Log detailed track information
         tracks.groups.forEachIndexed { _, group ->
             val type = when (group.type) {
-                C.TRACK_TYPE_AUDIO -> "Audio"
-                C.TRACK_TYPE_TEXT -> "Text"
-                C.TRACK_TYPE_VIDEO -> "Video"
+                C.TRACK_TYPE_AUDIO -> "A"
+                C.TRACK_TYPE_TEXT -> "T"
+                C.TRACK_TYPE_VIDEO -> "V"
                 else -> "Other (${group.type})"
             }
             for (i in 0 until group.length) {
                 val format: Format = group.getTrackFormat(i)
                 val isSelected = group.isTrackSelected(i)
-                log("  $type track $i: ${format.width}x${format.height}, ${format.bitrate}bps, ${format.sampleMimeType}, selected=$isSelected")
+                log("Track[$type]: ${format.width}x${format.height}, ${format.bitrate}bps, ${format.sampleMimeType}, selected=$isSelected")
             }
         }
     }
@@ -176,7 +176,7 @@ class PlayerDebugger(
         loadEventInfo: LoadEventInfo,
         mediaLoadData: MediaLoadData
     ) {
-        log("Chunk S: ${loadEventInfo.uri.lastPathSegment ?: "unknown"}")
+        logger.log("Chunk S: ${loadEventInfo.uri.lastPathSegment ?: "unknown"}", logCatOnly = true)
     }
 
     @OptIn(UnstableApi::class)
@@ -185,7 +185,7 @@ class PlayerDebugger(
         loadEventInfo: LoadEventInfo,
         mediaLoadData: MediaLoadData
     ) {
-        log("Chunk C: ${loadEventInfo.uri.lastPathSegment ?: "unknown"}")
+        logger.log("Chunk C: ${loadEventInfo.uri.lastPathSegment ?: "unknown"}", logCatOnly = true)
     }
 
     override fun onBandwidthEstimate(

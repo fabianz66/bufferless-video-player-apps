@@ -9,7 +9,7 @@ import java.util.Locale
 
 interface CustomLogger {
     val logs: StateFlow<List<String>>
-    fun log(message: String)
+    fun log(message: String, logCatOnly: Boolean = false)
 }
 
 class CustomLoggerImpl(
@@ -20,10 +20,13 @@ class CustomLoggerImpl(
     private val _logs = MutableStateFlow<List<String>>(emptyList())
     override val logs: StateFlow<List<String>> = _logs
 
-    override fun log(message: String) {
+    override fun log(message: String, logCatOnly: Boolean) {
+        if (logCatOnly) {
+            Log.d(tag, message)
+            return
+        }
         val timestamp = timeFormatter.format(Date())
         val formattedMessage = "[$timestamp] $message"
-        Log.d(tag, message)
         val currentLogs = _logs.value.toMutableList()
         currentLogs.add(0, formattedMessage) // Newest logs at the top
         if (currentLogs.size > maxLogs) {

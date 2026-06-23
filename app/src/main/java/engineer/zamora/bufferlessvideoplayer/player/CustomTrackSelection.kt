@@ -41,7 +41,7 @@ class CustomTrackSelection(
         logger?.log(
             "ABR Update | P: ${playbackPositionUs / 1000}ms | " +
                     "R: ${bufferedDurationUs / 1000}ms | BW: ${currentBandwidth}bps | " +
-                    "G: ${group.id} | T: [$trackInfo]"
+                    "G: ${group.id} | T: [$trackInfo]", logCatOnly = true
         )
 
         // Example Logic: If buffer is low, force the lowest bitrate immediately
